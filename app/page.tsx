@@ -1,50 +1,142 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+
+import { useCallback, useState } from "react";
 import {
   ArrowUpRight,
   ArrowDown,
+  ChevronDown,
   Hand,
   Ear,
   Heart,
   Brain,
   Mail,
   RotateCcw,
-  Plus,
 } from "lucide-react";
 import Portrait from "@/components/portrait";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { projects, type ProjectId } from "@/lib/projects";
+import { projectStories, experience } from "@/lib/portfolio-content";
+
 const icons = { hands: Hand, ears: Ear, heart: Heart, brain: Brain };
+
 export default function Home() {
   const [hovered, setHovered] = useState<ProjectId | null>(null);
-  const [selected, setSelected] = useState<ProjectId | null>(null);
+  const [active, setActive] = useState<ProjectId | null>(null);
   const [reset, setReset] = useState(0);
-  const returnFocus = useRef<HTMLElement | null>(null);
-  const select = useCallback((id: ProjectId) => {
-    returnFocus.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    setSelected(id);
+  const navigate = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    history.pushState(null, "", `#${id}`);
+    target.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+    target.focus({ preventScroll: true });
   }, []);
-  const project = projects.find((p) => p.id === selected);
+  const select = useCallback(
+    (id: ProjectId) => {
+      setActive(id);
+      setHovered(null);
+      navigate(`project-${id}`);
+    },
+    [navigate],
+  );
   const preview = projects.find((p) => p.id === hovered);
+
   return (
     <main>
       <header className="site-header">
         <a className="wordmark" href="#home" aria-label="Gaode Gao home">
-          gaode gao<span className="brand-mark">✳</span>
+          Gaode Gao<span className="brand-mark">✳</span>
         </a>
         <nav aria-label="Main navigation">
-          <a className="nav-work" href="#work">
-            Selected work
-          </a>
-          <a href="/Gaode-Gao-Resume.pdf" target="_blank" rel="noreferrer">
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger className="nav-dropdown">
+              Projects <ChevronDown size={14} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="nav-menu"
+              align="end"
+              sideOffset={15}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <DropdownMenuItem asChild>
+                <a
+                  href="#work"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("work");
+                  }}
+                >
+                  All projects <ArrowDown size={15} />
+                </a>
+              </DropdownMenuItem>
+              {projects.map((p) => {
+                const Icon = icons[p.id];
+                return (
+                  <DropdownMenuItem key={p.id} asChild>
+                    <a
+                      href={`#project-${p.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        select(p.id);
+                      }}
+                    >
+                      <Icon size={17} />
+                      <span>{p.title}</span>
+                    </a>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger className="nav-dropdown">
+              Experience <ChevronDown size={14} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="nav-menu"
+              align="end"
+              sideOffset={15}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              <DropdownMenuItem asChild>
+                <a
+                  href="#experience"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("experience");
+                  }}
+                >
+                  Work & leadership
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a
+                  href="#education"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("education");
+                  }}
+                >
+                  Education
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <a
+            className="resume-nav"
+            href="/Gaode-Gao-Resume.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
             Résumé <ArrowUpRight size={15} />
           </a>
           <a className="contact-link" href="mailto:gaodegao35@gmail.com">
@@ -52,6 +144,7 @@ export default function Home() {
           </a>
         </nav>
       </header>
+
       <section id="home" className="hero" aria-labelledby="intro-title">
         <div className="introduction">
           <p className="intro-role">Product designer & creative developer</p>
@@ -71,7 +164,7 @@ export default function Home() {
             <span>Studying learning. Designing what’s next.</span>
           </p>
           <a className="explore-link" href="#work">
-            Get to know my work <ArrowDown size={17} />
+            Explore my projects <ArrowDown size={17} />
           </a>
         </div>
         <div className="portrait-space">
@@ -86,11 +179,10 @@ export default function Home() {
             reset={reset}
           />
           <div className="portrait-hint">
-            <span>Hover to discover. Click to explore.</span>
+            <span>Pick a part of me. Explore a project.</span>
             <button
               onClick={() => setReset((r) => r + 1)}
               aria-label="Reset portrait position"
-              title="Reset portrait"
             >
               <RotateCcw size={16} />
             </button>
@@ -111,47 +203,217 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       <section
-        className="selected-work"
+        className="work-section"
         id="work"
+        tabIndex={-1}
         aria-labelledby="work-heading"
       >
-        <div className="work-heading">
-          <h2 id="work-heading">Different parts of me. One way of thinking.</h2>
-          <span>Explore selected work</span>
+        <div className="section-intro">
+          <div>
+            <p className="section-kicker">Selected projects</p>
+            <h2 id="work-heading">Curiosity, put into practice.</h2>
+          </div>
+          <p>
+            Four ways I’ve explored how technology can help us connect,
+            understand, and learn.
+          </p>
         </div>
-        <div className="project-grid">
+        <div className="project-jump-list" aria-label="Jump to a project">
           {projects.map((p) => {
             const Icon = icons[p.id];
             return (
-              <button
+              <a
+                href={`#project-${p.id}`}
                 key={p.id}
-                className={`project-button ${hovered === p.id ? "is-active" : ""}`}
-                onPointerEnter={() => setHovered(p.id)}
-                onPointerLeave={() => setHovered(null)}
-                onFocus={() => setHovered(p.id)}
-                onBlur={() => setHovered(null)}
-                onClick={() => select(p.id)}
-                style={{ "--project-color": p.color } as React.CSSProperties}
+                onClick={(e) => {
+                  e.preventDefault();
+                  select(p.id);
+                }}
               >
-                <span className="project-icon">
-                  <Icon size={23} strokeWidth={1.5} />
-                </span>
-                <span className="project-button-copy">
-                  <span>
-                    {p.part} / {p.category}
-                  </span>
-                  <strong>{p.title}</strong>
-                </span>
-                <Plus size={17} className="project-plus" />
-              </button>
+                <Icon size={18} />
+                <span>{p.title}</span>
+                <ArrowDown size={14} />
+              </a>
             );
           })}
         </div>
+        {projects.map((p) => {
+          const story = projectStories[p.id];
+          const Icon = icons[p.id];
+          return (
+            <article
+              key={p.id}
+              id={`project-${p.id}`}
+              tabIndex={-1}
+              aria-labelledby={`title-${p.id}`}
+              className={`project-story story-${p.id} ${active === p.id ? "is-selected" : ""}`}
+            >
+              <div
+                className="project-cover"
+                style={
+                  { "--cover-color": story.background } as React.CSSProperties
+                }
+              >
+                <div className="cover-heading">
+                  <span>
+                    <Icon size={19} />
+                    {p.title}
+                  </span>
+                  <span>{story.coverLabel}</span>
+                </div>
+                <div className={`screenshots screenshots-${p.id}`}>
+                  {story.images.length ? (
+                    story.images.map((image, i) => (
+                      <figure
+                        key={image.src}
+                        className={`product-shot shot-${i}`}
+                      >
+                        <div className="window-chrome">
+                          <i />
+                          <i />
+                          <i />
+                          <span>{image.label}</span>
+                        </div>
+                        <div
+                          className="shot-viewport"
+                          style={{
+                            aspectRatio: image.crop
+                              ? `${image.crop.width}/${image.crop.height}`
+                              : `${image.width}/${image.height}`,
+                          }}
+                        >
+                          <img
+                            src={image.src}
+                            alt={image.alt}
+                            loading="lazy"
+                            width={image.width}
+                            height={image.height}
+                            style={
+                              image.crop
+                                ? {
+                                    position: "absolute",
+                                    width: `${(image.width / image.crop.width) * 100}%`,
+                                    maxWidth: "none",
+                                    height: "auto",
+                                    maxHeight: "none",
+                                    left: `${(-image.crop.x / image.crop.width) * 100}%`,
+                                    top: `${(-image.crop.y / image.crop.height) * 100}%`,
+                                  }
+                                : undefined
+                            }
+                          />
+                        </div>
+                      </figure>
+                    ))
+                  ) : (
+                    <div className="cover-feature">
+                      <Icon size={72} strokeWidth={1} />
+                      <p>{story.headline}</p>
+                    </div>
+                  )}
+                </div>
+                <p className="cover-caption">{story.caption}</p>
+              </div>
+              <div className="story-content">
+                <p className="project-context">{p.context}</p>
+                <h3 id={`title-${p.id}`}>{story.headline}</h3>
+                <p className="story-description">{p.description}</p>
+                <dl className="story-role">
+                  <dt>My role</dt>
+                  <dd>{p.role}</dd>
+                </dl>
+                <h4>Key features</h4>
+                <ul className="feature-list">
+                  {story.features.map((f) => (
+                    <li key={f.title}>
+                      <strong>{f.title}</strong>
+                      <span>{f.detail}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="tags">
+                  {p.tags.map((t) => (
+                    <span key={t}>{t}</span>
+                  ))}
+                </div>
+                <div className="story-links">
+                  <a href={p.repo} target="_blank" rel="noreferrer">
+                    Explore the project <ArrowUpRight size={16} />
+                  </a>
+                  {p.demo && (
+                    <a href={p.demo} target="_blank" rel="noreferrer">
+                      Live experience <ArrowUpRight size={16} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </section>
+
+      <section
+        id="experience"
+        className="experience-section"
+        tabIndex={-1}
+        aria-labelledby="experience-heading"
+      >
+        <div className="section-intro">
+          <div>
+            <p className="section-kicker">Experience</p>
+            <h2 id="experience-heading">A designer who builds.</h2>
+          </div>
+          <p>
+            My work spans learning technology, data, and bringing a product from
+            an idea to the people who use it.
+          </p>
+        </div>
+        <div className="experience-list">
+          {experience.map((job) => (
+            <article key={job.title}>
+              <p className="experience-date">{job.date}</p>
+              <div>
+                <h3>{job.title}</h3>
+                <p className="experience-company">{job.company}</p>
+              </div>
+              <p>{job.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section
+        id="education"
+        className="education-section"
+        tabIndex={-1}
+        aria-labelledby="education-heading"
+      >
+        <h2 id="education-heading">Always learning.</h2>
+        <div>
+          <article>
+            <p>Carnegie Mellon University</p>
+            <h3>Educational Technology & Applied Learning Sciences</h3>
+            <span>
+              Master’s · Human–Computer Interaction Institute · Expected Dec.
+              2026
+            </span>
+          </article>
+          <article>
+            <p>New York University</p>
+            <h3>Mathematics</h3>
+            <span>Bachelor of Arts · May 2025</span>
+          </article>
+        </div>
       </section>
       <footer>
-        <p>Made with curiosity, by Gaode.</p>
+        <a className="footer-contact" href="mailto:gaodegao35@gmail.com">
+          Let’s make something thoughtful. <ArrowUpRight size={20} />
+        </a>
         <div>
+          <a href="/Gaode-Gao-Resume.pdf" target="_blank" rel="noreferrer">
+            Résumé <ArrowUpRight size={13} />
+          </a>
           <a
             href="https://github.com/gaodegao35"
             target="_blank"
@@ -171,79 +433,6 @@ export default function Home() {
           </a>
         </div>
       </footer>
-      <Dialog
-        open={!!selected}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelected(null);
-            setHovered(null);
-          }
-        }}
-      >
-        {project && (
-          <DialogContent
-            className="project-dialog"
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              returnFocus.current?.focus();
-            }}
-          >
-            <div
-              className="dialog-motif"
-              style={
-                { "--project-color": project.color } as React.CSSProperties
-              }
-            >
-              {(() => {
-                const Icon = icons[project.id];
-                return <Icon size={62} strokeWidth={1} />;
-              })()}
-              <span>{project.connection}</span>
-            </div>
-            <div className="dialog-body">
-              <p className="dialog-category">
-                {project.category} · {project.context}
-              </p>
-              <DialogTitle className="dialog-title">
-                {project.title}
-              </DialogTitle>
-              <DialogDescription className="dialog-description">
-                {project.description}
-              </DialogDescription>
-              <div className="project-role">
-                <span>My role</span>
-                <strong>{project.role}</strong>
-              </div>
-              <h3>What I worked on</h3>
-              <ul>
-                {project.contributions.map((c) => (
-                  <li key={c}>{c}</li>
-                ))}
-              </ul>
-              <div className="tags">
-                {project.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-              <div className="dialog-links">
-                <a
-                  className="primary-link"
-                  href={project.repo}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Explore on GitHub <ArrowUpRight size={17} />
-                </a>
-                {project.demo && (
-                  <a href={project.demo} target="_blank" rel="noreferrer">
-                    View live project <ArrowUpRight size={17} />
-                  </a>
-                )}
-              </div>
-            </div>
-          </DialogContent>
-        )}
-      </Dialog>
     </main>
   );
 }

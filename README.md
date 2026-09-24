@@ -22,21 +22,24 @@ For the standard Next.js runtime, use `npm run dev:next` or `npm run build:next`
 
 ## Experience
 
-- Hover the model or its labels to reveal a project summary; click or tap to open details.
+- Hover the portrait labels for a project summary; click or tap to scroll to its screenshot-led project section. No project dialogs.
 - Hands → ASL Master; ears → Tone-aware Translator; heart → Calculus Teachable Agent; brain → Accounting, Reimagined.
-- Keyboard-accessible project buttons and dialogs, Escape-to-close, reduced-motion support, and a project navigation fallback when WebGL is unavailable.
+- Keyboard-accessible project buttons, Projects and Experience dropdowns, focused scroll destinations, and reduced-motion support.
 - Résumé, GitHub, LinkedIn, and email links.
-- Lazy-loaded Three.js, capped pixel density, and rendering suspended when the portrait is offscreen or the document is hidden.
+- Photo-inspired portrait illustration with restrained pointer tilt. The original Three.js prototype is preserved separately for future model integration.
 
 ## Edit the content
 
 - `lib/projects.ts`: project descriptions, contribution summaries, and links.
 - `app/page.tsx`: introduction, navigation, and project details.
 - `app/globals.css`: colors, typography, and responsive layout.
-- `components/portrait.tsx`: model, camera, lighting, raycasting, and anchored labels.
+- `components/portrait.tsx`: illustrated portrait, pointer tilt, and project hotspots.
+- `components/portrait-prototype.tsx`: original procedural Three.js prototype (not rendered).
+- `lib/portfolio-content.ts`: feature summaries, screenshot metadata, and experience.
+- `public/projects/`: real interface captures from local project previews.
 - `public/Gaode-Gao-Resume.pdf`: résumé download.
 
-The 3D character is a procedural stylized stand-in, not a scan or an exact likeness. It can be replaced with a personalized GLB/GLTF model while retaining the hotspot IDs and project content. No reference photograph was provided.
+The current portrait is an AI-generated raster illustration based on the supplied photograph, not a 3D mesh, scan, or exact likeness. A personalized GLB/GLTF asset is still needed for genuine rotation and 3D body-part interaction. Its four hotspot IDs already connect to project sections. The original photos are not included in this repository. See `ASSET-NOTES.md` for asset provenance and generation prompts.
 
 Content is grounded in the supplied résumé and linked project documentation. Team projects describe Gaode's role rather than claiming sole authorship. No unverified impact metrics are included.
 
