@@ -110,7 +110,6 @@ export default function Portrait({
           </button>
         ))}
       </div>
-      <span className="portrait-medium">Photo-inspired illustration</span>
     </div>
   );
 }
